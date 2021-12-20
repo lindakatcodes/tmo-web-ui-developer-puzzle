@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import {
   addToReadingList,
@@ -9,18 +9,28 @@ import {
 } from '@tmo/books/data-access';
 import { FormBuilder } from '@angular/forms';
 import { Book } from '@tmo/shared/models';
+import {
+  debounce,
+  debounceTime,
+  distinctUntilChanged,
+  takeUntil,
+  tap,
+} from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'tmo-book-search',
   templateUrl: './book-search.component.html',
   styleUrls: ['./book-search.component.scss'],
 })
-export class BookSearchComponent implements OnInit {
+export class BookSearchComponent implements OnInit, OnDestroy {
   books: ReadingListBook[];
 
   searchForm = this.fb.group({
     term: '',
   });
+
+  private destroy$: Subject<any> = new Subject();
 
   constructor(
     private readonly store: Store,
@@ -39,6 +49,22 @@ export class BookSearchComponent implements OnInit {
     this.store.select(getAllBooks).subscribe((books) => {
       this.books = books;
     });
+    this.searchForm
+      .get('term')
+      .valueChanges.pipe(
+        debounceTime(600),
+        distinctUntilChanged(),
+        tap(() => {
+          this.store.dispatch(searchBooks({ term: this.searchTerm }));
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   formatDate(date: void | string) {
