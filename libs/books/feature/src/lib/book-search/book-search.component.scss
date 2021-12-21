@@ -58,6 +58,10 @@ form {
       bottom: 0;
       right: 0;
     }
+
+    button:focus {
+      background-color: $pink-accent;
+    }
   }
 }
 
@@ -68,5 +72,17 @@ form {
   justify-content: center;
   min-height: 50vh;
   font-size: 1.5rem;
-  color: $gray40;
+  color: $gray60;
+}
+
+@media screen and (max-width: $mobile-breakpoint) {
+  .mat-form-field button {
+    width: 48px;
+    height: 48px;
+    margin-left: $spacing-xxs;
+  }
+
+  .book-grid {
+    grid-template-columns: 1fr;
+  }
 }
