@@ -2,8 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Actions, createEffect, ofType, OnInitEffects } from '@ngrx/effects';
 import { of } from 'rxjs';
-import { catchError, concatMap, exhaustMap, map } from 'rxjs/operators';
+import {
+  catchError,
+  concatMap,
+  exhaustMap,
+  map,
+  switchMap,
+} from 'rxjs/operators';
 import { ReadingListItem } from '@tmo/shared/models';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import * as ReadingListActions from './reading-list.actions';
 
 @Injectable()
@@ -54,9 +61,53 @@ export class ReadingListEffects implements OnInitEffects {
     )
   );
 
+  addBookSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ReadingListActions.confirmedAddToReadingList),
+      switchMap(({ book }) =>
+        this.snackBar
+          .open('Book added to reading list', 'Undo')
+          .onAction()
+          .pipe(
+            map(() =>
+              ReadingListActions.removeFromReadingList({
+                item: { bookId: book.id, ...book },
+              })
+            ),
+            catchError(() => of(ReadingListActions.addToReadingList({ book })))
+          )
+      )
+    )
+  );
+
+  removeBookSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ReadingListActions.confirmedRemoveFromReadingList),
+      switchMap(({ item }) =>
+        this.snackBar
+          .open('Book removed from reading list', 'Undo')
+          .onAction()
+          .pipe(
+            map(() =>
+              ReadingListActions.addToReadingList({
+                book: { id: item.bookId, ...item },
+              })
+            ),
+            catchError(() =>
+              of(ReadingListActions.removeFromReadingList({ item }))
+            )
+          )
+      )
+    )
+  );
+
   ngrxOnInitEffects() {
     return ReadingListActions.init();
   }
 
-  constructor(private actions$: Actions, private http: HttpClient) {}
+  constructor(
+    private actions$: Actions,
+    private http: HttpClient,
+    private snackBar: MatSnackBar
+  ) {}
 }
