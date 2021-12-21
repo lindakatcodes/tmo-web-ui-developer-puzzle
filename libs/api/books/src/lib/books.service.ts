@@ -15,8 +15,8 @@ export class BooksService {
     return this.http
       .get(`https://www.googleapis.com/books/v1/volumes?q=${term}`)
       .pipe(
-        map(resp => {
-          return resp.data.items.map(item => {
+        map((resp) => {
+          return resp.data.items.map((item) => {
             return {
               id: item.id,
               title: item.volumeInfo?.title,
@@ -26,7 +26,7 @@ export class BooksService {
               publishedDate: item.volumeInfo?.publishedDate
                 ? new Date(item.volumeInfo?.publishedDate).toISOString()
                 : undefined,
-              coverUrl: item.volumeInfo?.imageLinks?.thumbnail
+              coverUrl: item.volumeInfo?.imageLinks?.thumbnail,
             };
           });
         })
