@@ -33,7 +33,7 @@ describe('When: I use the reading list feature', () => {
       .should('contain.text', 'Finished');
   });
 
-  it('Then: if I select a book I already finished that was removed from the list, it does not so as finished', () => {
+  it('Then: if I select a book I already finished that was removed from the list, it does not show as finished', () => {
     cy.get('[data-testing="toggle-reading-list"]').click();
     cy.get('[data-testing="remove-item-button"]:last')
       .should('be.visible')
